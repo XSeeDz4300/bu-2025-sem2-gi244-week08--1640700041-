@@ -8,32 +8,38 @@ public class PlayerController : MonoBehaviour
     public bool gameOver = false;
 
     public ParticleSystem fxDirt;
-
     public GameObject fxExplosionPrefab;
 
     public Animator animator;
 
     public AudioClip sfxCrash;
-
-    public AudioSource audioSource;
+    public AudioClip sfxJump;
 
     private Rigidbody rb;
     private InputAction jumpAction;
+    // 5.8 add audio source variable to play crash sound
+
+    private AudioSource audioSource;
 
     private bool isOnGround = true;
 
     void Awake()
     {
-        animator = GetComponent<Animator>();    
-
+        animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+
         jumpAction = InputSystem.actions.FindAction("Jump");
 
+        // 5.8 get audio source component, if not exist, add one
+
         audioSource = GetComponent<AudioSource>();
-        if (audioSource)
+
+        if (audioSource == null)
         {
+            audioSource = gameObject.AddComponent<AudioSource>();
         }
     }
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     void Start()
     {
@@ -44,6 +50,7 @@ public class PlayerController : MonoBehaviour
             animator.SetFloat("Speed_f", 1.0f);
         }
     }
+    // Update is called once per frame
 
     void Update()
     {
@@ -54,10 +61,15 @@ public class PlayerController : MonoBehaviour
 
         if (jumpAction.triggered && isOnGround)
         {
-            rb.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
             isOnGround = false;
+
             animator.SetTrigger("Jump_trig");
+
             fxDirt.Stop();
+
+            audioSource.PlayOneShot(sfxJump);
         }
     }
 
@@ -66,17 +78,20 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isOnGround = true;
+
             fxDirt.Play();
         }
         else if (collision.gameObject.CompareTag("Obstacle"))
         {
             Debug.Log("Game Over!");
+
             gameOver = true;
 
             animator.SetBool("Death_b", true);
             animator.SetInteger("DeathType_int", 1);
 
-            Instantiate(fxExplosionPrefab,
+            Instantiate(
+                fxExplosionPrefab,
                 transform.position,
                 Quaternion.identity
             );
