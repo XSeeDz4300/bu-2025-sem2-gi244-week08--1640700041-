@@ -63,12 +63,16 @@ public class CharacterController : MonoBehaviour
         if (useWeaponAction.triggered)
         {
             isUsingHandgun = !isUsingHandgun;
+            handgun.SetActive(isUsingHandgun);
         }
 
         // Update animator parameters
         if (anim != null)
         {
             float speed = Mathf.Abs(moveInput.y);
+            anim.SetFloat(moveParameter, speed);
+            anim.SetBool(crouchParameter, isCrouching);
+            anim.SetInteger(weaponTypeParameter, isUsingHandgun ? 1 : 0);
         }
     }
 }
